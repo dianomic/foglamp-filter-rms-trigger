@@ -295,7 +295,7 @@ map<string, Reading *>	readings;
 			it->second->samples = 0;
 			DatapointValue	dpv(value);
 			DatapointValue  peak(it->second->peak_max - it->second->peak_min);
-			DatapointValue  sampleNo(m_sampleNo++);
+			DatapointValue  sampleNo(m_sampleNo);
 
 			string assetName = m_assetName;
 			/*
@@ -331,6 +331,10 @@ map<string, Reading *>	readings;
 				readings.insert(pair<string, Reading *>(it->first.first, tmpReading));
 			}
 		}
+	}
+	if (triggered)
+	{
+		m_sampleNo++;
 	}
 
 	// Move all the new RMS values into the output
@@ -490,11 +494,11 @@ double val;
 	}
 	else if (m_triggerRapid)
 	{
-		if (m_triggerRise && val - m_lastTrigger > 1000)
+		if (m_triggerRise && abs(val - m_lastTrigger) > 10000)
 		{
 			triggered = true;
 		}
-		else if (m_triggerRise == false && m_lastTrigger - val > 1000)
+		else if (m_triggerRise == false && abs(m_lastTrigger - val) > 10000)
 		{
 			triggered = true;
 		}

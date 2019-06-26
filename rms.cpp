@@ -210,7 +210,7 @@ struct	timeval tv;
 			}
 			if (sendRawData())
 			{
-				DatapointValue  sampleNo(m_sampleNo);
+				DatapointValue  sampleNo(m_sampleNo - (triggered ?  1 : 0));
 				(*elem)->addDatapoint(new Datapoint(m_sampleName, sampleNo));
 				out.push_back(*elem);
 			}

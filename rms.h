@@ -50,4 +50,8 @@ class RMSFilter : public FogLampFilter {
 		double		m_lastTrigger;
 		bool		m_triggerZC;
 		bool		m_triggerRise;
+		bool		m_triggerRapid;
+		long		m_sampleNo;
+		bool		m_addSampleNo;
+		std::string	m_sampleName;
 };

@@ -40,6 +40,7 @@ RMSFilter::RMSFilter(const std::string& filterName,
 				FogLampFilter(filterName, filterConfig,
 						outHandle, out)
 {
+	m_sampleNo = 0;
 	if (filterConfig.itemExists("assetName"))
 	{
 		m_assetName = filterConfig.getValue("assetName");
@@ -75,7 +76,7 @@ RMSFilter::RMSFilter(const std::string& filterName,
 	if (filterConfig.itemExists("triggerType"))
 	{
 		string type = m_config.getValue("triggerType");
-		if (type.compare("zero crossing"))
+		if (type.compare("zero crossing") == 0)
 		{
 			m_triggerZC = true;
 		}
@@ -83,11 +84,19 @@ RMSFilter::RMSFilter(const std::string& filterName,
 		{
 			m_triggerZC = false;
 		}
+		if (type.compare("rapid edge") == 0)
+		{
+			m_triggerRapid = true;
+		}
+		else
+		{
+			m_triggerRapid = false;
+		}
 	}
 	if (filterConfig.itemExists("triggerEdge"))
 	{
 		string type = m_config.getValue("triggerEdge");
-		if (type.compare("rising"))
+		if (type.compare("rising") == 0)
 		{
 			m_triggerRise = true;
 		}
@@ -95,6 +104,22 @@ RMSFilter::RMSFilter(const std::string& filterName,
 		{
 			m_triggerRise = false;
 		}
+	}
+	if (filterConfig.itemExists("addSampleNo"))
+	{
+		m_addSampleNo = filterConfig.getValue("addSampleNo").compare("true") == 0 ? true : false;
+	}
+	else
+	{
+		m_addSampleNo = false;
+	}
+	if (filterConfig.itemExists("sampleName"))
+	{
+		m_sampleName = filterConfig.getValue("sampleName");
+	}
+	else
+	{
+		m_sampleName = "partNo";
 	}
 	if (filterConfig.itemExists("rawData"))
 	{
@@ -182,6 +207,8 @@ regex	*re = 0;
 			}
 			if (sendRawData())
 			{
+				DatapointValue  sampleNo(m_sampleNo);
+				(*elem)->addDatapoint(new Datapoint(m_sampleName, sampleNo));
 				out.push_back(*elem);
 			}
 			else
@@ -265,6 +292,7 @@ map<string, Reading *>	readings;
 			it->second->samples = 0;
 			DatapointValue	dpv(value);
 			DatapointValue  peak(it->second->peak_max - it->second->peak_min);
+			DatapointValue  sampleNo(m_sampleNo++);
 
 			string assetName = m_assetName;
 			/*
@@ -292,11 +320,16 @@ map<string, Reading *>	readings;
 				{
 					tmpReading->addDatapoint(new Datapoint(it->first.second + "peak", peak));
 				}
+				if (m_addSampleNo)
+				{
+					tmpReading->addDatapoint(new Datapoint(m_sampleName, sampleNo));
+				}
 				readings.insert(pair<string, Reading *>(it->first.first, tmpReading));
 			}
 		}
 	}
 
+	// Move all the new RMS values into the output
 	for (auto it = readings.cbegin(); it != readings.cend(); it++)
 	{
 		out.push_back(it->second);
@@ -357,7 +390,7 @@ RMSFilter::reconfigure(const string& newConfig)
 	if (m_config.itemExists("triggerType"))
 	{
 		string type = m_config.getValue("triggerType");
-		if (type.compare("zero crossing"))
+		if (type.compare("zero crossing") == 0)
 		{
 			m_triggerZC = true;
 		}
@@ -365,11 +398,19 @@ RMSFilter::reconfigure(const string& newConfig)
 		{
 			m_triggerZC = false;
 		}
+		if (type.compare("rapid edge") == 0)
+		{
+			m_triggerRapid = true;
+		}
+		else
+		{
+			m_triggerRapid = false;
+		}
 	}
 	if (m_config.itemExists("triggerEdge"))
 	{
 		string type = m_config.getValue("triggerEdge");
-		if (type.compare("rising"))
+		if (type.compare("rising") == 0)
 		{
 			m_triggerRise = true;
 		}
@@ -377,6 +418,22 @@ RMSFilter::reconfigure(const string& newConfig)
 		{
 			m_triggerRise = false;
 		}
+	}
+	if (m_config.itemExists("addSampleNo"))
+	{
+		m_addSampleNo = m_config.getValue("addSampleNo").compare("true") == 0 ? true : false;
+	}
+	else
+	{
+		m_addSampleNo = false;
+	}
+	if (m_config.itemExists("sampleName"))
+	{
+		m_sampleName = m_config.getValue("sampleName");
+	}
+	else
+	{
+		m_sampleName = "partNo";
 	}
 	if (m_config.itemExists("rawData"))
 	{
@@ -426,6 +483,18 @@ double val;
 			triggered = true;
 		}
 		m_triggerNegative = (val < 0);
+	}
+	else if (m_triggerRapid)
+	{
+		if (m_triggerRise && val - m_lastTrigger > 1000)
+		{
+			triggered = true;
+		}
+		else if (m_triggerRise == false && m_lastTrigger - val > 1000)
+		{
+			triggered = true;
+		}
+		m_lastTrigger = val;
 	}
 	else
 	{

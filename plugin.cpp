@@ -52,7 +52,7 @@ const char *default_config = QUOTE({
 		"triggerType" : {
 			"description" : "The type of trigger event.",
 			"type": "enumeration",
-			"options" : [ "zero crossing", "peak" ],
+			"options" : [ "zero crossing", "peak", "rapid edge" ],
 			"default": "zero crossing",
 			"order" : "3",
 			"displayName" : "Trigger Type"
@@ -93,12 +93,26 @@ const char *default_config = QUOTE({
 			"order": "8",
 			"displayName": "Asset filter"
 			},
+		"addSampleNo": {
+			"description": "Add a monotonic sample number to each RMS value and corresponding raw data",
+			"type": "boolean",
+			"default": "false",
+			"order" : "9",
+			"displayName": "Add Sample No."
+			},
+		"sampleName": {
+			"description": "Name of distret sample number",
+			"type": "string",
+			"default": "partNo",
+			"order" : "10",
+			"displayName": "Sample Name."
+			},
 		"enable": {
 			"description": "A switch that can be used to enable or disable execution of the RMS filter.",
 			"type": "boolean",
 			"displayName": "Enabled",
 			"default": "false",
-			"order": "9"
+			"order": "11"
 			}
 		});
 

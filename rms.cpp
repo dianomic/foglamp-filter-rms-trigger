@@ -11,7 +11,7 @@
 #include <reading_set.h>
 #include <utility>
 #include <logger.h>
-#include <rms.h>
+#include "rms.h"
 #include <regex>
 
 using namespace std;
@@ -71,6 +71,30 @@ RMSFilter::RMSFilter(const std::string& filterName,
 	else
 	{
 		m_triggerDatapoint = "";
+	}
+	if (filterConfig.itemExists("triggerType"))
+	{
+		string type = m_config.getValue("triggerType");
+		if (type.compare("zero crossing"))
+		{
+			m_triggerZC = true;
+		}
+		else
+		{
+			m_triggerZC = false;
+		}
+	}
+	if (filterConfig.itemExists("triggerEdge"))
+	{
+		string type = m_config.getValue("triggerEdge");
+		if (type.compare("rising"))
+		{
+			m_triggerRise = true;
+		}
+		else
+		{
+			m_triggerRise = false;
+		}
 	}
 	if (filterConfig.itemExists("rawData"))
 	{
@@ -133,18 +157,9 @@ regex	*re = 0;
 					if ((*it)->getName().compare(m_triggerDatapoint) == 0 &&
 							asset.compare(m_triggerAsset) == 0)
 					{
-						if (m_triggerNegative && value.toInt() >= 0)
+						if (hasTriggered(value))
 						{
-							m_triggerNegative = false;
 							triggered = true;
-						}
-						else if (value.toInt() < 0)
-						{
-							m_triggerNegative = true;
-						}
-						else
-						{
-							m_triggerNegative = false;
 						}
 					}
 				}
@@ -154,18 +169,9 @@ regex	*re = 0;
 					if ((*it)->getName().compare(m_triggerDatapoint) == 0 &&
 							asset.compare(m_triggerAsset) == 0)
 					{
-						if (m_triggerNegative && value.toDouble() >= 0)
+						if (hasTriggered(value))
 						{
-							m_triggerNegative = false;
 							triggered = true;
-						}
-						else if (value.toDouble() < 0)
-						{
-							m_triggerNegative = true;
-						}
-						else
-						{
-							m_triggerNegative = false;
 						}
 					}
 				}
@@ -348,6 +354,30 @@ RMSFilter::reconfigure(const string& newConfig)
 	{
 		m_triggerDatapoint = "";
 	}
+	if (m_config.itemExists("triggerType"))
+	{
+		string type = m_config.getValue("triggerType");
+		if (type.compare("zero crossing"))
+		{
+			m_triggerZC = true;
+		}
+		else
+		{
+			m_triggerZC = false;
+		}
+	}
+	if (m_config.itemExists("triggerEdge"))
+	{
+		string type = m_config.getValue("triggerEdge");
+		if (type.compare("rising"))
+		{
+			m_triggerRise = true;
+		}
+		else
+		{
+			m_triggerRise = false;
+		}
+	}
 	if (m_config.itemExists("rawData"))
 	{
 		m_sendRawData = m_config.getValue("rawData").compare("true") == 0 ? true : false;
@@ -364,4 +394,51 @@ RMSFilter::reconfigure(const string& newConfig)
 	{
 		m_sendPeak = false;
 	}
+}
+
+/**
+ * Determine if the trigger condition has been met.
+ *
+ * @param value	The datapoint value of the trigger datapoint
+ * @param true if the trigger condition has been met
+ */
+bool RMSFilter::hasTriggered(DatapointValue& value)
+{
+bool triggered = false;
+double val;
+
+	if (value.getType() == DatapointValue::T_INTEGER)
+	{
+		val = value.toInt();
+	}
+	else if (value.getType() == DatapointValue::T_FLOAT)
+	{
+		val = value.toDouble();
+	}
+	if (m_triggerZC)
+	{
+		if (m_triggerRise && m_triggerNegative && val >= 0)
+		{
+			triggered = true;
+		}
+		if (m_triggerRise == false && m_triggerNegative == false && val <= 0)
+		{
+			triggered = true;
+		}
+		m_triggerNegative = (val < 0);
+	}
+	else
+	{
+		if (m_triggerRise && m_triggerDecreasing == false && val < m_lastTrigger)
+		{
+			triggered = true;
+		}
+		if (m_triggerRise == false && m_triggerDecreasing && val > m_lastTrigger)
+		{
+			triggered = true;
+		}
+		m_triggerDecreasing = (val < m_lastTrigger);
+		m_lastTrigger = val;
+	}
+	return triggered;
 }

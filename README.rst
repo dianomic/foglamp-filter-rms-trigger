@@ -41,6 +41,14 @@ triggerDatapoint
   The name of the datapoint within the trigger asset that triggers the
   RMS calculation
 
+triggerType
+  The type of event that triggers the generation of the RMS value. This
+  may be crossign the zero point or reaching a peak (maximum or minimum).
+
+triggerEdge
+  The type of edge that triggers the generation, either a rising
+  (increasing value) edge or a falling edge (data values decreasing).
+
 assetName
   The asset name to use to output the RMS values. "%a" will be replaced
   with the original asset name.

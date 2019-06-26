@@ -19,41 +19,89 @@
 #include <filter.h>
 #include <reading_set.h>
 #include <logger.h>
-#include <rms.h>
+#include "rms.h"
 #include <version.h>
 
+#define TO_STRING(...) DEFER(TO_STRING_)(__VA_ARGS__)
+#define DEFER(x) x
+#define TO_STRING_(...) #__VA_ARGS__
+#define QUOTE(...) TO_STRING(__VA_ARGS__)
+
 #define FILTER_NAME "rms-trigger"
-#define DEFAULT_CONFIG "{\"plugin\" : { \"description\" : \"Calculate RMS & Peak values over a set of samples\", " \
-                       		"\"type\" : \"string\", " \
-				"\"default\" : \"" FILTER_NAME "\", \"readonly\" : \"true\" }, " \
-			 "\"rawData\": {\"description\": \"Switch to control the inclusion of the raw data in the output\", " \
-				"\"type\": \"boolean\", " \
-				"\"default\": \"false\", " \
-				"\"order\" : \"5\", \"displayName\": \"Include Raw Data\" }, " \
-			 "\"peak\": {\"description\": \"Include peak to peak values in readings\", " \
-				"\"type\": \"boolean\", " \
-				"\"default\": \"false\", " \
-				"\"order\" : \"4\", \"displayName\": \"Include Peak Values\" }, " \
-			 "\"assetName\": {\"description\": \"Name of the output asset for the RMS data\", " \
-				"\"type\": \"string\", " \
-				"\"default\": \"%a RMS\", \"order\": \"3\", \"displayName\": \"RMS Asset name\" }, " \
-			 "\"enable\": {\"description\": \"A switch that can be used to enable or disable execution of " \
-					 "the RMS filter.\", " \
-				"\"type\": \"boolean\", " \
-				"\"displayName\": \"Enabled\", " \
-				"\"default\": \"false\" }, " \
-			"\"triggerAsset\" : {\"description\" : \"Name of asset that triggers RMS calculation.\", " \
-				"\"type\": \"string\", " \
-				"\"default\": \"\", \"order\" : \"1\", " \
-				"\"displayName\" : \" Trigger Asset\"}, " \
-			"\"triggerDatapoint\" : {\"description\" : \"Name of datapoint that triggers RMS calculation.\", " \
-					"\"type\": \"string\", " \
-					"\"default\": \"\", \"order\" : \"2\", " \
-					"\"displayName\" : \" Trigger Datapoint\"}, " \
-			 "\"match\": {\"description\": \"An optional regular expression to match in the asset name\", " \
-				"\"type\": \"string\", " \
-				"\"default\": \".*\", \"order\": \"6\", \"displayName\": \"Asset filter\" } " \
-			" }"
+const char *default_config = QUOTE({
+		"plugin" : { 
+			"description" : "Calculate RMS & Peak values over a set of samples",
+                       	"type" : "string",
+			"default" : FILTER_NAME,
+			"readonly" : "true"
+			},
+		"triggerAsset" : {
+			"description" : "Name of asset that triggers RMS calculation.",
+			"type": "string",
+			"default": "",
+			"order" : "1",
+			"displayName" : " Trigger Asset"
+			},
+		"triggerDatapoint" : {
+			"description" : "Name of datapoint that triggers RMS calculation.",
+			"type": "string",
+			"default": "",
+			"order" : "2",
+			"displayName" : "Trigger Datapoint"
+			},
+		"triggerType" : {
+			"description" : "The type of trigger event.",
+			"type": "enumeration",
+			"options" : [ "zero crossing", "peak" ],
+			"default": "zero crossing",
+			"order" : "3",
+			"displayName" : "Trigger Type"
+			},
+		"triggerEdge" : {
+			"description" : "The trigger edge direction.",
+			"type": "enumeration",
+			"options" : [ "rising", "falling" ],
+			"default": "rising",
+			"order" : "4",
+			"displayName" : "Trigger Edge"
+			},
+		"assetName": {
+			"description": "Name of the output asset for the RMS data",
+			"type": "string",
+			"default": "%a RMS",
+			"order": "5",
+			"displayName": "RMS Asset name"
+			},
+		"peak": {
+			"description": "Include peak to peak values in readings",
+			"type": "boolean",
+			"default": "false",
+			"order" : "6",
+			"displayName": "Include Peak Values"
+			},
+		"rawData": {
+			"description": "Switch to control the inclusion of the raw data in the output",
+			"type": "boolean",
+			"default": "false",
+			"order" : "7",
+			"displayName": "Include Raw Data"
+			},
+		"match": {
+			"description": "An optional regular expression to match in the asset name",
+			"type": "string",
+			"default": ".*",
+			"order": "8",
+			"displayName": "Asset filter"
+			},
+		"enable": {
+			"description": "A switch that can be used to enable or disable execution of the RMS filter.",
+			"type": "boolean",
+			"displayName": "Enabled",
+			"default": "false",
+			"order": "9"
+			}
+		});
+
 using namespace std;
 
 /**
@@ -70,7 +118,7 @@ static PLUGIN_INFORMATION info = {
         0,                        // Flags
         PLUGIN_TYPE_FILTER,       // Type
         "1.0.0",                  // Interface version
-	DEFAULT_CONFIG	          // Default plugin configuration
+	default_config	          // Default plugin configuration
 };
 
 typedef struct

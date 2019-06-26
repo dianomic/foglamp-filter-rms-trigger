@@ -26,6 +26,7 @@ class RMSFilter : public FogLampFilter {
 		void	addValue(const std::string& asset, const std::string& dpname, double value);
 		void	outputData(std::vector<Reading *>&, bool triggered);
 		bool	sendRawData();
+		bool	hasTriggered(DatapointValue& value);
 		class RMSData {
 			public:
 				RMSData() : samples(0), cumulative(0.0)
@@ -45,4 +46,8 @@ class RMSFilter : public FogLampFilter {
 		std::map<std::pair<std::string, std::string>, RMSData *>
 				m_values;
 		bool		m_triggerNegative;
+		bool		m_triggerDecreasing;
+		double		m_lastTrigger;
+		bool		m_triggerZC;
+		bool		m_triggerRise;
 };

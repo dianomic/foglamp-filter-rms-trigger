@@ -208,9 +208,10 @@ struct	timeval tv;
 					// do nothing
 				}
 			}
+			outputData(out, triggered, &tv);
 			if (sendRawData())
 			{
-				DatapointValue  sampleNo(m_sampleNo - (triggered ?  1 : 0));
+				DatapointValue  sampleNo(m_sampleNo);
 				(*elem)->addDatapoint(new Datapoint(m_sampleName, sampleNo));
 				out.push_back(*elem);
 			}
@@ -219,7 +220,6 @@ struct	timeval tv;
 				delete *elem;
 			}
 		}
-		outputData(out, triggered, &tv);
 	}
 	readings->clear();	// Prevent double deletes
 

@@ -9,6 +9,7 @@
  */
 #include <filter.h>
 #include <reading_set.h>
+#include <reading.h>
 #include <string>
 #include <map>
 #include <regex>
@@ -24,7 +25,7 @@ class RMSFilter : public FogLampFilter {
 	private:
 		void	addValue(const std::string& asset, const std::string& dpname, long value);
 		void	addValue(const std::string& asset, const std::string& dpname, double value);
-		void	outputData(std::vector<Reading *>&, bool triggered);
+		void	outputData(std::vector<Reading *>&, bool triggered, struct timeval *tm);
 		bool	sendRawData();
 		bool	hasTriggered(DatapointValue& value);
 		class RMSData {

@@ -149,6 +149,7 @@ void
 RMSFilter::ingest(vector<Reading *> *readings, vector<Reading *>& out)
 {
 regex	*re = 0;
+struct	timeval tv;
 
 	if (m_assetFilter.compare(".*"))
 	{
@@ -185,6 +186,7 @@ regex	*re = 0;
 						if (hasTriggered(value))
 						{
 							triggered = true;
+							(*elem)->getUserTimestamp(&tv);
 						}
 					}
 				}
@@ -197,6 +199,7 @@ regex	*re = 0;
 						if (hasTriggered(value))
 						{
 							triggered = true;
+							(*elem)->getUserTimestamp(&tv);
 						}
 					}
 				}
@@ -216,7 +219,7 @@ regex	*re = 0;
 				delete *elem;
 			}
 		}
-		outputData(out, triggered);
+		outputData(out, triggered, &tv);
 	}
 	readings->clear();	// Prevent double deletes
 
@@ -277,7 +280,7 @@ pair<string, string>	key = make_pair(asset, dpname);
  * @param readingSet	A reading set to which any RMS values are appened
  */
 void
-RMSFilter::outputData(vector<Reading *>& out, bool triggered)
+RMSFilter::outputData(vector<Reading *>& out, bool triggered, struct timeval *tv)
 {
 vector<Datapoint *>	dataPoints;
 map<string, Reading *>	readings;
@@ -324,6 +327,7 @@ map<string, Reading *>	readings;
 				{
 					tmpReading->addDatapoint(new Datapoint(m_sampleName, sampleNo));
 				}
+				tmpReading->setUserTimestamp(*tv);
 				readings.insert(pair<string, Reading *>(it->first.first, tmpReading));
 			}
 		}

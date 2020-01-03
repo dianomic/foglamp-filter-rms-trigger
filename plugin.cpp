@@ -220,7 +220,7 @@ void plugin_reconfigure(PLUGIN_HANDLE *handle, const string& newConfig)
 {
 	FILTER_INFO *info = (FILTER_INFO *)handle;
 	RMSFilter* data = info->handle;
-	data->setConfig(newConfig);
+	data->reconfigure(newConfig);
 }
 
 /**

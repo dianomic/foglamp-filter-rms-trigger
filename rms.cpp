@@ -37,7 +37,7 @@ RMSFilter::RMSFilter(const std::string& filterName,
 		     ConfigCategory& filterConfig,
 		     OUTPUT_HANDLE *outHandle,
 		     OUTPUT_STREAM out) :
-				FogLampFilter(filterName, filterConfig,
+				FogLAMPFilter(filterName, filterConfig,
 						outHandle, out)
 {
 	m_sampleNo = 0;

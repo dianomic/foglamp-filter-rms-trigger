@@ -14,7 +14,7 @@
 #include <map>
 #include <regex>
 
-class RMSFilter : public FogLampFilter {
+class RMSFilter : public FogLAMPFilter {
 	public:
 		RMSFilter(const std::string& filterName,
 			ConfigCategory& filterConfig,

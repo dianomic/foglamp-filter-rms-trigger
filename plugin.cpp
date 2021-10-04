@@ -24,7 +24,7 @@
 
 
 #define FILTER_NAME "rms-trigger"
-const char *default_config = QUOTE({
+static const char *default_config = QUOTE({
 		"plugin" : { 
 			"description" : "Calculate RMS & Peak values over a set of samples",
                        	"type" : "string",
